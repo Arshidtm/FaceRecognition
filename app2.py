@@ -26,7 +26,7 @@ st.write(f"Running on EC2: {ON_EC2}")
 if ON_EC2:
     st.warning("""
     You're running on an EC2 instance which typically doesn't have direct camera access.
-    The app will attempt to use your local camera through WebRTC.
+    The app will use WebRTC to access your local camera through the browser.
     """)
 
 # Option 1: Direct camera access (works locally)
@@ -37,17 +37,30 @@ if not ON_EC2:
     if run_direct:
         FRAME_WINDOW = st.image([])
         camera = cv2.VideoCapture(0)
-
-        stop_button = st.button("Stop Direct Camera")
-
-        while not stop_button:
-            _, frame = camera.read()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            FRAME_WINDOW.image(frame)
+        
+        if not camera.isOpened():
+            st.error("Cannot open camera. Please check if it's connected and available.")
+        else:
             stop_button = st.button("Stop Direct Camera")
+            
+            while not stop_button:
+                ret, frame = camera.read()
+                
+                if not ret:
+                    st.error("Failed to grab frame. Camera may be disconnected.")
+                    break
+                
+                try:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    FRAME_WINDOW.image(frame)
+                except cv2.error as e:
+                    st.error(f"Error processing frame: {str(e)}")
+                    break
+                    
+                stop_button = st.button("Stop Direct Camera")
 
-        camera.release()
-        st.write("Camera stopped")
+            camera.release()
+            st.write("Camera stopped")
 
 # Option 2: WebRTC for remote access
 st.header("WebRTC Camera Access (Works Remotely)")
@@ -60,8 +73,10 @@ class VideoProcessor:
     def recv(self, frame):
         img = frame.to_ndarray(format="bgr24")
         
-        # You can process the image here if needed
-        # e.g., add filters, face detection, etc.
+        # Optional: Add any image processing here
+        # For example, convert to grayscale:
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         
         return av.VideoFrame.from_ndarray(img, format="bgr24")
 
@@ -75,4 +90,4 @@ webrtc_ctx = webrtc_streamer(
 )
 
 if not webrtc_ctx.state.playing:
-    st.write("Waiting for camera access...")
+    st.info("Click 'Start' to enable camera access. You may need to grant permissions.")
