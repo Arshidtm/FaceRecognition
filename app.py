@@ -9,7 +9,7 @@ from mtcnn import MTCNN
 from keras_facenet import FaceNet
 from PIL import Image
 import time
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase
+from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfiguration
 import av
 
 # Configure logging
@@ -26,18 +26,34 @@ st.set_page_config(
     layout="wide"
 )
 
+# WebRTC configuration
+RTC_CONFIGURATION = RTCConfiguration(
+    {"iceServers": [
+        {"urls": ["stun:stun.l.google.com:19302"]},
+        {"urls": ["stun:stun1.l.google.com:19302"]},
+        {"urls": ["stun:stun2.l.google.com:19302"]}
+    ]}
+)
+
 # Load models with caching
 @st.cache_resource
 def load_models():
     try:
         logger.info("Loading models...")
-        detector = MTCNN()
+        # Force CPU usage if needed
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # Comment this line if you have GPU
+        detector = MTCNN()  # Add device='cpu' parameter if needed
+        
         embedder = FaceNet()
 
-        with open("models/facerecognitionDL.pkl", "rb") as f:
+        # Use absolute paths for model files
+        model_path = os.path.join("models", "facerecognitionDL.pkl")
+        encoder_path = os.path.join("models", "label_encoder.pkl")
+        
+        with open(model_path, "rb") as f:
             model = pickle.load(f)
 
-        with open("models/label_encoder.pkl", "rb") as f:
+        with open(encoder_path, "rb") as f:
             label_encoder = pickle.load(f)
 
         return detector, embedder, model, label_encoder
@@ -61,8 +77,12 @@ def recognize_faces(frame: np.ndarray) -> Tuple[List[Dict], np.ndarray]:
                 x, y, w, h = face['box']
                 x, y = max(0, x), max(0, y)
                 face_roi = img_rgb[y:y+h, x:x+w]
+                
+                # Skip very small faces
+                if w < 20 or h < 20:
+                    continue
+                    
                 face_resized = cv2.resize(face_roi, (160, 160))
-
                 embedding = embedder.embeddings(np.expand_dims(face_resized, axis=0))
                 predictions = model.predict(embedding)
 
@@ -96,13 +116,31 @@ def recognize_faces(frame: np.ndarray) -> Tuple[List[Dict], np.ndarray]:
 # Video processor class for WebRTC
 class FaceRecognitionProcessor(VideoProcessorBase):
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
-        img = frame.to_ndarray(format="bgr24")
-        _, annotated_img = recognize_faces(img)
-        return av.VideoFrame.from_ndarray(annotated_img, format="bgr24")
+        try:
+            img = frame.to_ndarray(format="bgr24")
+            _, annotated_img = recognize_faces(img)
+            return av.VideoFrame.from_ndarray(annotated_img, format="bgr24")
+        except Exception as e:
+            logger.error(f"Video processing error: {e}")
+            return frame
+
+def opencv_fallback():
+    """Fallback method using OpenCV when WebRTC fails"""
+    st.warning("Using OpenCV fallback - may not work in all browsers")
+    run_camera = st.checkbox("Start Camera")
+    FRAME_WINDOW = st.image([])
+    
+    if run_camera:
+        camera = cv2.VideoCapture(0)
+        while run_camera:
+            _, frame = camera.read()
+            _, annotated_img = recognize_faces(frame)
+            FRAME_WINDOW.image(annotated_img, channels="BGR")
+        camera.release()
 
 def main():
     st.title("Face Recognition System")
-
+    
     # Create tabs
     tab1, tab2 = st.tabs(["Image Recognition", "Live Recognition"])
 
@@ -132,14 +170,26 @@ def main():
                         st.warning("No faces detected")
 
     with tab2:
-        st.header("Live Recognition (via Browser Webcam)")
-        st.info("Make sure to grant camera permission to the browser.")
-        webrtc_streamer(
-            key="live-recognition",
-            video_processor_factory=FaceRecognitionProcessor,
-            media_stream_constraints={"video": True, "audio": False},
-            async_processing=True
-        )
+        st.header("Live Recognition")
+        st.info("For best results, use Chrome or Edge browser and allow camera access.")
+        
+        # WebRTC with fallback option
+        try:
+            webrtc_ctx = webrtc_streamer(
+                key="live-recognition",
+                video_processor_factory=FaceRecognitionProcessor,
+                rtc_configuration=RTC_CONFIGURATION,
+                media_stream_constraints={"video": True, "audio": False},
+                async_processing=True
+            )
+            
+            # if not webrtc_ctx.state.playing:
+            #     st.warning("WebRTC connection not established. Trying fallback...")
+            #     opencv_fallback()
+                
+        except Exception as e:
+            st.error(f"WebRTC error: {str(e)}")
+            # opencv_fallback()
 
 if __name__ == "__main__":
     main()
