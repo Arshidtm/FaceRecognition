@@ -14,8 +14,8 @@ A production-ready face recognition system with web interface built with FastAPI
 ### Setup
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/face-recognition-api.git
-cd face-recognition-api
+https://github.com/Arshidtm/FaceRecognition.git
+cd FaceRecognition
 
 # Create virtual environment
 python -m venv venv
@@ -24,3 +24,8 @@ source venv/bin/activate  # Linux/Mac
 
 # Install dependencies
 pip install -r requirements.txt
+
+# run on local
+uvicorn main:app --reload
+
+# acsess the api
