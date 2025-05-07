@@ -174,6 +174,6 @@ cython_debug/
 .pypirc
 
 models/runs
-facerecognitionDL.pkl
-label_encoder.pkl
+# facerecognitionDL.pkl
+# label_encoder.pkl
 data
