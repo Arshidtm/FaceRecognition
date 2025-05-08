@@ -29,3 +29,6 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 
 # acsess the api
+https://13.48.28.54/
+(shows not secure because not using a domain name)
+
