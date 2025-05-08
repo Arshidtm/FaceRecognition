@@ -30,7 +30,7 @@ pip install -r requirements.txt
 # run on local
 streamlit run app.py
 
-# acsess the api
+# Live link
 https://13.48.28.54/
 (shows not secure because not using a domain name)
 
