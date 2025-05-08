@@ -1,6 +1,6 @@
 # FaceRecognition
 
-![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)
 
 A production-ready face recognition system with web interface built with FastAPI, MTCNN, and FaceNet.
@@ -26,7 +26,7 @@ source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 
 # run on local
-uvicorn main:app --reload
+streamlit run app.py
 
 # acsess the api
 https://13.48.28.54/
