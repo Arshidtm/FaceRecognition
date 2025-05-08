@@ -2,6 +2,8 @@
 
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)
+![FaceNet](https://img.shields.io/badge/FaceNet-5C3EE8?style=for-the-badge&logo=python&logoColor=white)
+![MTCNN](https://img.shields.io/badge/MTCNN-FF6D01?style=for-the-badge&logo=opencv&logoColor=white)
 
 A production-ready face recognition system with web interface built with FastAPI, MTCNN, and FaceNet.
 
