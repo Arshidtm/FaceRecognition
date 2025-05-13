@@ -10,7 +10,7 @@ A production-ready face recognition system with web interface built with FastAPI
 ## 📦 Installation
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.12
 - pip
 
 ### Setup
