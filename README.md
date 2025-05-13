@@ -31,6 +31,6 @@ pip install -r requirements.txt
 streamlit run app.py
 
 # Live link
-https://13.48.28.54/
+https://16.16.97.170/
 (shows not secure because not using a domain name)
 
