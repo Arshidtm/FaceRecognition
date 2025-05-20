@@ -5,7 +5,7 @@
 ![FaceNet](https://img.shields.io/badge/FaceNet-5C3EE8?style=for-the-badge&logo=python&logoColor=white)
 ![MTCNN](https://img.shields.io/badge/MTCNN-FF6D01?style=for-the-badge&logo=opencv&logoColor=white)
 
-A production-ready face recognition system with web interface built with FastAPI, MTCNN, and FaceNet.
+A production-ready face recognition system with web interface built with Streamlit, MTCNN, and FaceNet.
 
 ## 📦 Installation
 
